@@ -1,0 +1,2 @@
+# This directory stores data files (parquet, etc.)
+# These are gitignored - run the data pipeline to generate them

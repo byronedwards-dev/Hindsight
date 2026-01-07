@@ -215,7 +215,7 @@ def verify_magic_link(
         value=session_token,
         httponly=True,
         secure=settings.environment == "production",
-        samesite="lax",
+        samesite="none",
         max_age=settings.session_expires_days * 24 * 60 * 60
     )
     

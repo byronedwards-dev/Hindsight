@@ -117,6 +117,115 @@ HISTORICAL_DESCRIPTIONS = {
 }
 
 
+def generate_dynamic_description(scenario: Scenario, monthly_data: list) -> str:
+    """
+    Generate a dynamic description based on what happened in the forward period.
+    Uses actual returns and economic indicators to describe the period.
+    """
+    # Get forward period data (months 25-36)
+    forward_data = [d for d in monthly_data if d.is_forward]
+    historical_data = [d for d in monthly_data if not d.is_forward]
+    
+    if not forward_data or not historical_data:
+        return None
+    
+    # Calculate returns from the scenario
+    stock_return = float(scenario.fwd_return_stocks) * 100
+    bond_return = float(scenario.fwd_return_bonds) * 100
+    gold_return = float(scenario.fwd_return_gold) * 100
+    
+    # Get GDP and unemployment changes
+    start_gdp = historical_data[-1].gdp_growth_yoy if historical_data[-1].gdp_growth_yoy else None
+    end_gdp = forward_data[-1].gdp_growth_yoy if forward_data[-1].gdp_growth_yoy else None
+    
+    start_unemp = historical_data[-1].unemployment_rate if historical_data[-1].unemployment_rate else None
+    end_unemp = forward_data[-1].unemployment_rate if forward_data[-1].unemployment_rate else None
+    
+    start_inflation = historical_data[-1].inflation_rate_yoy if historical_data[-1].inflation_rate_yoy else None
+    end_inflation = forward_data[-1].inflation_rate_yoy if forward_data[-1].inflation_rate_yoy else None
+    
+    # Build description
+    parts = []
+    
+    # Stock performance
+    if stock_return > 20:
+        parts.append(f"Stocks surged {stock_return:.0f}% over the next year, a remarkable rally")
+    elif stock_return > 10:
+        parts.append(f"Stocks gained {stock_return:.0f}%, delivering solid returns")
+    elif stock_return > 0:
+        parts.append(f"Stocks rose modestly by {stock_return:.0f}%")
+    elif stock_return > -10:
+        parts.append(f"Stocks declined {abs(stock_return):.0f}%, a mild correction")
+    elif stock_return > -20:
+        parts.append(f"Stocks fell {abs(stock_return):.0f}%, a significant decline")
+    else:
+        parts.append(f"Stocks plunged {abs(stock_return):.0f}%, a severe bear market")
+    
+    # Bond performance comparison
+    if bond_return > 5:
+        parts.append(f"while bonds also performed well, returning {bond_return:.0f}%")
+    elif bond_return > 0:
+        parts.append(f"while bonds provided modest gains of {bond_return:.0f}%")
+    elif bond_return < -5:
+        parts.append(f"and bonds also struggled, losing {abs(bond_return):.0f}%")
+    else:
+        parts.append(f"while bonds were roughly flat at {bond_return:.0f}%")
+    
+    # GDP trend
+    gdp_desc = ""
+    if start_gdp is not None and end_gdp is not None:
+        gdp_change = float(end_gdp) - float(start_gdp)
+        if gdp_change > 2:
+            gdp_desc = f"GDP growth accelerated from {float(start_gdp):.1f}% to {float(end_gdp):.1f}%"
+        elif gdp_change < -2:
+            gdp_desc = f"GDP growth slowed significantly from {float(start_gdp):.1f}% to {float(end_gdp):.1f}%"
+        elif float(end_gdp) < 0:
+            gdp_desc = f"The economy contracted with GDP at {float(end_gdp):.1f}%"
+        elif float(end_gdp) > 3:
+            gdp_desc = f"The economy grew robustly at {float(end_gdp):.1f}%"
+        else:
+            gdp_desc = f"The economy grew moderately at {float(end_gdp):.1f}%"
+    
+    # Unemployment trend
+    unemp_desc = ""
+    if start_unemp is not None and end_unemp is not None:
+        unemp_change = float(end_unemp) - float(start_unemp)
+        if unemp_change > 1:
+            unemp_desc = f"unemployment rose from {float(start_unemp):.1f}% to {float(end_unemp):.1f}%"
+        elif unemp_change < -1:
+            unemp_desc = f"unemployment fell from {float(start_unemp):.1f}% to {float(end_unemp):.1f}%"
+        elif float(end_unemp) > 7:
+            unemp_desc = f"unemployment remained elevated at {float(end_unemp):.1f}%"
+        elif float(end_unemp) < 5:
+            unemp_desc = f"unemployment stayed low at {float(end_unemp):.1f}%"
+    
+    # Combine economic context
+    if gdp_desc and unemp_desc:
+        parts.append(f"{gdp_desc}, and {unemp_desc}")
+    elif gdp_desc:
+        parts.append(gdp_desc)
+    elif unemp_desc:
+        parts.append(unemp_desc.capitalize())
+    
+    # Add gold if noteworthy
+    if abs(gold_return) > 15:
+        if gold_return > 0:
+            parts.append(f"Gold shone as a safe haven, gaining {gold_return:.0f}%")
+        else:
+            parts.append(f"Gold fell {abs(gold_return):.0f}% as investors moved to riskier assets")
+    
+    # Construct final description
+    if len(parts) >= 2:
+        description = f"{parts[0]}, {parts[1]}."
+        if len(parts) >= 3:
+            description += f" {parts[2]}."
+        if len(parts) >= 4:
+            description += f" {parts[3]}."
+        return description
+    
+    return ". ".join(parts) + "." if parts else None
+
+
 @router.post("/", response_model=GameSessionOut)
 def create_game(
     game_input: GameCreateInput, 
@@ -256,8 +365,10 @@ def reveal_game(session_token: str, db: Session = Depends(get_db)):
     window_end = scenario_start + relativedelta(months=12)  # Month 36
     actual_period = f"{window_start.strftime('%B %Y')} - {window_end.strftime('%B %Y')}"
     
-    # Get historical description
+    # Get historical description - use pre-written if available, otherwise generate dynamically
     historical_description = HISTORICAL_DESCRIPTIONS.get(scenario.historical_context, None)
+    if not historical_description:
+        historical_description = generate_dynamic_description(scenario, all_data)
     
     # Convert monthly data for response
     monthly_data_out = [

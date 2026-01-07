@@ -7,176 +7,103 @@ interface AllocationSlidersProps {
   onChange: (allocation: Allocation) => void
 }
 
-interface SliderRowProps {
-  label: string
-  value: number
-  color: string
-  onChange: (value: number) => void
-  disabled?: boolean
-  isRemainder?: boolean
-}
+const ALLOCATION_PRESETS: { name: string; allocation: Allocation; color: string }[] = [
+  { name: '60/40 Stocks/Bonds', allocation: { stocks: 60, bonds: 40, cash: 0, gold: 0 }, color: 'stocks' },
+  { name: 'All Stocks', allocation: { stocks: 100, bonds: 0, cash: 0, gold: 0 }, color: 'stocks' },
+  { name: 'All Bonds', allocation: { stocks: 0, bonds: 100, cash: 0, gold: 0 }, color: 'bonds' },
+  { name: 'All Gold', allocation: { stocks: 0, bonds: 0, cash: 0, gold: 100 }, color: 'gold' },
+  { name: 'Equal Split', allocation: { stocks: 25, bonds: 25, cash: 25, gold: 25 }, color: 'terminal-text' },
+]
 
-function SliderRow({ label, value, color, onChange, disabled = false, isRemainder = false }: SliderRowProps) {
-  const dollarAmount = (value / 100 * 100000).toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })
-
-  return (
-    <div className={`flex items-center gap-4 py-2 ${isRemainder ? 'opacity-70' : ''}`}>
-      <div className="w-24 flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-        <span className="text-sm">{label}</span>
-      </div>
-      
-      <input
-        type="range"
-        min={0}
-        max={100}
-        step={1}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        disabled={disabled}
-        className={`flex-1 h-2 rounded-lg cursor-pointer ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
-        style={{
-          background: `linear-gradient(to right, ${color} 0%, ${color} ${value}%, #1e2a36 ${value}%, #1e2a36 100%)`,
-        }}
-      />
-      
-      <div className="w-24 text-right">
-        <span className="font-mono text-sm">{value}%</span>
-        {isRemainder && <span className="text-xs text-terminal-muted ml-1">(auto)</span>}
-      </div>
-      
-      <div className="w-24 text-right">
-        <span className="font-mono text-sm text-terminal-muted">{dollarAmount}</span>
-      </div>
-    </div>
-  )
+function allocationEquals(a: Allocation, b: Allocation): boolean {
+  return a.stocks === b.stocks && a.bonds === b.bonds && a.cash === b.cash && a.gold === b.gold
 }
 
 export function AllocationSliders({ allocation, onChange }: AllocationSlidersProps) {
-  const total = allocation.stocks + allocation.bonds + allocation.cash + allocation.gold
-  const isValid = total === 100
-
-  // When stocks, bonds, or gold change, adjust cash to maintain 100%
-  function updateAllocationWithCashAdjust(key: 'stocks' | 'bonds' | 'gold', value: number) {
-    const otherAssets = key === 'stocks' ? allocation.bonds + allocation.gold :
-                        key === 'bonds' ? allocation.stocks + allocation.gold :
-                        allocation.stocks + allocation.bonds
-    
-    // Cap the value so total doesn't exceed 100
-    const maxValue = 100 - otherAssets
-    const cappedValue = Math.min(value, maxValue)
-    
-    // Calculate remaining for cash
-    const newCash = 100 - cappedValue - otherAssets
-    
-    onChange({
-      ...allocation,
-      [key]: cappedValue,
-      cash: Math.max(0, newCash),
-    })
-  }
-
-  // Cash slider adjusts directly (user can override auto-calculation)
-  function updateCash(value: number) {
-    const otherAssets = allocation.stocks + allocation.bonds + allocation.gold
-    const maxCash = 100 - otherAssets
-    onChange({
-      ...allocation,
-      cash: Math.min(value, maxCash),
-    })
-  }
-
-  // Quick presets
-  function applyPreset(preset: Allocation) {
-    onChange(preset)
-  }
-
-  // Calculate if cash is the "remainder"
-  const cashIsRemainder = allocation.cash === (100 - allocation.stocks - allocation.bonds - allocation.gold)
+  const selectedPreset = ALLOCATION_PRESETS.find(p => allocationEquals(p.allocation, allocation))
 
   return (
-    <div>
-      <SliderRow
-        label="Stocks"
-        value={allocation.stocks}
-        color="#3b82f6"
-        onChange={(v) => updateAllocationWithCashAdjust('stocks', v)}
-      />
-      <SliderRow
-        label="Bonds"
-        value={allocation.bonds}
-        color="#22c55e"
-        onChange={(v) => updateAllocationWithCashAdjust('bonds', v)}
-      />
-      <SliderRow
-        label="Gold"
-        value={allocation.gold}
-        color="#eab308"
-        onChange={(v) => updateAllocationWithCashAdjust('gold', v)}
-      />
-      <SliderRow
-        label="Cash"
-        value={allocation.cash}
-        color="#94a3b8"
-        onChange={updateCash}
-        isRemainder={cashIsRemainder}
-      />
-      
-      {/* Total indicator */}
-      <div className="mt-4 pt-4 border-t border-terminal-border flex items-center justify-between">
-        <span className="text-sm">Total</span>
-        <span className={`font-mono text-lg font-medium ${isValid ? 'text-gain' : 'text-loss'}`}>
-          {total}% {isValid ? '✓' : `(${total > 100 ? '+' : ''}${total - 100})`}
-        </span>
+    <div className="space-y-4">
+      {/* Preset Buttons */}
+      <div className="grid grid-cols-1 gap-3">
+        {ALLOCATION_PRESETS.map((preset) => {
+          const isSelected = allocationEquals(preset.allocation, allocation)
+          return (
+            <button
+              key={preset.name}
+              type="button"
+              onClick={() => onChange(preset.allocation)}
+              className={`w-full px-4 py-4 rounded-xl border-2 transition-all text-left ${
+                isSelected 
+                  ? `bg-${preset.color}/20 border-${preset.color} text-white` 
+                  : 'bg-terminal-bg border-terminal-border text-terminal-muted hover:border-terminal-text hover:text-terminal-text'
+              }`}
+              style={isSelected ? {
+                backgroundColor: preset.color === 'stocks' ? 'rgba(59, 130, 246, 0.2)' :
+                                preset.color === 'bonds' ? 'rgba(34, 197, 94, 0.2)' :
+                                preset.color === 'gold' ? 'rgba(234, 179, 8, 0.2)' :
+                                'rgba(255, 255, 255, 0.1)',
+                borderColor: preset.color === 'stocks' ? '#3b82f6' :
+                             preset.color === 'bonds' ? '#22c55e' :
+                             preset.color === 'gold' ? '#eab308' :
+                             '#94a3b8'
+              } : {}}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-base">{preset.name}</span>
+                {isSelected && (
+                  <span className="text-gain text-lg">✓</span>
+                )}
+              </div>
+              <div className="mt-1 text-sm opacity-70 font-mono">
+                {preset.allocation.stocks > 0 && `${preset.allocation.stocks}% Stocks`}
+                {preset.allocation.bonds > 0 && `${preset.allocation.stocks > 0 ? ' · ' : ''}${preset.allocation.bonds}% Bonds`}
+                {preset.allocation.gold > 0 && `${(preset.allocation.stocks > 0 || preset.allocation.bonds > 0) ? ' · ' : ''}${preset.allocation.gold}% Gold`}
+                {preset.allocation.cash > 0 && `${(preset.allocation.stocks > 0 || preset.allocation.bonds > 0 || preset.allocation.gold > 0) ? ' · ' : ''}${preset.allocation.cash}% Cash`}
+              </div>
+            </button>
+          )
+        })}
       </div>
-      
-      {/* Presets */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => applyPreset({ stocks: 60, bonds: 40, cash: 0, gold: 0 })}
-          className="px-3 py-1 text-xs bg-terminal-bg border border-terminal-border rounded-lg 
-                   hover:border-stocks transition-colors"
-        >
-          60/40
-        </button>
-        <button
-          type="button"
-          onClick={() => applyPreset({ stocks: 100, bonds: 0, cash: 0, gold: 0 })}
-          className="px-3 py-1 text-xs bg-terminal-bg border border-terminal-border rounded-lg 
-                   hover:border-stocks transition-colors"
-        >
-          All Stocks
-        </button>
-        <button
-          type="button"
-          onClick={() => applyPreset({ stocks: 0, bonds: 100, cash: 0, gold: 0 })}
-          className="px-3 py-1 text-xs bg-terminal-bg border border-terminal-border rounded-lg 
-                   hover:border-bonds transition-colors"
-        >
-          All Bonds
-        </button>
-        <button
-          type="button"
-          onClick={() => applyPreset({ stocks: 0, bonds: 0, cash: 100, gold: 0 })}
-          className="px-3 py-1 text-xs bg-terminal-bg border border-terminal-border rounded-lg 
-                   hover:border-cash transition-colors"
-        >
-          All Cash
-        </button>
-        <button
-          type="button"
-          onClick={() => applyPreset({ stocks: 25, bonds: 25, cash: 25, gold: 25 })}
-          className="px-3 py-1 text-xs bg-terminal-bg border border-terminal-border rounded-lg 
-                   hover:border-gold transition-colors"
-        >
-          Equal
-        </button>
+
+      {/* Display current allocation summary */}
+      <div className="mt-4 pt-4 border-t border-terminal-border">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-terminal-muted">Your Allocation</span>
+          <span className="font-mono text-terminal-text">
+            {selectedPreset ? selectedPreset.name : 'Custom'}
+          </span>
+        </div>
+        <div className="mt-2 flex gap-1 h-3 rounded-full overflow-hidden">
+          {allocation.stocks > 0 && (
+            <div 
+              className="bg-stocks transition-all" 
+              style={{ width: `${allocation.stocks}%` }}
+              title={`Stocks: ${allocation.stocks}%`}
+            />
+          )}
+          {allocation.bonds > 0 && (
+            <div 
+              className="bg-bonds transition-all" 
+              style={{ width: `${allocation.bonds}%` }}
+              title={`Bonds: ${allocation.bonds}%`}
+            />
+          )}
+          {allocation.gold > 0 && (
+            <div 
+              className="bg-gold transition-all" 
+              style={{ width: `${allocation.gold}%` }}
+              title={`Gold: ${allocation.gold}%`}
+            />
+          )}
+          {allocation.cash > 0 && (
+            <div 
+              className="bg-cash transition-all" 
+              style={{ width: `${allocation.cash}%` }}
+              title={`Cash: ${allocation.cash}%`}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

@@ -132,6 +132,14 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Game Introduction */}
+      <div className="mb-8 text-center">
+        <p className="text-terminal-text text-lg leading-relaxed max-w-3xl mx-auto">
+          You're shown <span className="text-stocks font-medium">24 months of real economic data</span> from the past 50 years. 
+          Your mission: predict what happens in the <span className="text-stocks font-medium">next 12 months</span> and allocate your portfolio accordingly.
+        </p>
+      </div>
+
       {/* Difficulty Toggle */}
       <div className="flex items-center justify-end mb-6 gap-4">
         <button

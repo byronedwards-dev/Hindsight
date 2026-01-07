@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { api } from '@/lib/api'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 
-export default function VerifyPage() {
+function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -128,3 +127,17 @@ export default function VerifyPage() {
   )
 }
 
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-terminal-muted">Loading...</p>
+        </div>
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
+  )
+}

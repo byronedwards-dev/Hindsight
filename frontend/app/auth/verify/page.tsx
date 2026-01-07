@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { getApiUrl } from '@/lib/api'
@@ -14,9 +14,14 @@ function VerifyContent() {
   
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying')
   const [error, setError] = useState<string | null>(null)
+  const hasAttempted = useRef(false)
 
   useEffect(() => {
     async function verify() {
+      // Prevent double-calling (React StrictMode or dependency changes)
+      if (hasAttempted.current) return
+      hasAttempted.current = true
+
       if (!token) {
         setStatus('error')
         setError('No verification token provided')

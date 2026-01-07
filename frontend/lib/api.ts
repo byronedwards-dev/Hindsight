@@ -169,7 +169,7 @@ export const api = {
   
   // Create a new game session with predictions
   async createGame(input: GameCreateInput): Promise<GameSession> {
-    return fetchJSON<GameSession>(`${getAPI()}/games`, {
+    return fetchJSON<GameSession>(`${getAPI()}/games/`, {
       method: 'POST',
       body: JSON.stringify(input),
     })

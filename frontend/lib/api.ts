@@ -2,10 +2,31 @@
  * API client for Hindsight Economics backend
  */
 
-// Determine API base at runtime
-const API_BASE = process.env.NODE_ENV === 'production'
-  ? 'https://hindsight-production-38c1.up.railway.app/api'
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api')
+// Production API URL - ALWAYS use HTTPS
+const PROD_API = 'https://hindsight-production-38c1.up.railway.app/api'
+const DEV_API = 'http://localhost:8000/api'
+
+// Get API URL - checks window.location at runtime
+function getApiUrl(): string {
+  // Server-side rendering - use production URL
+  if (typeof window === 'undefined') {
+    return PROD_API
+  }
+  
+  // Client-side - check actual hostname
+  const hostname = window.location.hostname
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return DEV_API
+  }
+  
+  // Any other hostname (production) - use HTTPS
+  return PROD_API
+}
+
+// Getter that returns fresh URL each time
+function getAPI(): string {
+  return getApiUrl()
+}
 
 // Types
 export interface ScenarioBase {
@@ -135,17 +156,17 @@ async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
 export const api = {
   // Get a random scenario for a new game
   async getRandomScenario(): Promise<ScenarioBase> {
-    return fetchJSON<ScenarioBase>(`${API_BASE}/scenarios/random`)
+    return fetchJSON<ScenarioBase>(`${getAPI()}/scenarios/random`)
   },
   
   // Get historical data for a scenario (24 months, no dates)
   async getScenarioHistory(scenarioId: number): Promise<ScenarioHistory> {
-    return fetchJSON<ScenarioHistory>(`${API_BASE}/scenarios/${scenarioId}/history`)
+    return fetchJSON<ScenarioHistory>(`${getAPI()}/scenarios/${scenarioId}/history`)
   },
   
   // Create a new game session with predictions
   async createGame(input: GameCreateInput): Promise<GameSession> {
-    return fetchJSON<GameSession>(`${API_BASE}/games`, {
+    return fetchJSON<GameSession>(`${getAPI()}/games`, {
       method: 'POST',
       body: JSON.stringify(input),
     })
@@ -153,12 +174,12 @@ export const api = {
   
   // Get game reveal with results and scores
   async getGameReveal(sessionToken: string): Promise<GameReveal> {
-    return fetchJSON<GameReveal>(`${API_BASE}/games/${sessionToken}/reveal`)
+    return fetchJSON<GameReveal>(`${getAPI()}/games/${sessionToken}/reveal`)
   },
   
   // Join leaderboard with username
   async joinLeaderboard(sessionToken: string, username: string): Promise<void> {
-    await fetchJSON(`${API_BASE}/games/${sessionToken}/leaderboard`, {
+    await fetchJSON(`${getAPI()}/games/${sessionToken}/leaderboard`, {
       method: 'POST',
       body: JSON.stringify({ username }),
     })
@@ -166,12 +187,12 @@ export const api = {
   
   // Get leaderboard
   async getLeaderboard(limit: number = 50): Promise<Leaderboard> {
-    return fetchJSON<Leaderboard>(`${API_BASE}/leaderboard?limit=${limit}`)
+    return fetchJSON<Leaderboard>(`${getAPI()}/leaderboard?limit=${limit}`)
   },
   
   // Add reflection after reveal
   async addReflection(sessionToken: string, reflection: string): Promise<void> {
-    await fetchJSON(`${API_BASE}/games/${sessionToken}/reflection`, {
+    await fetchJSON(`${getAPI()}/games/${sessionToken}/reflection`, {
       method: 'POST',
       body: JSON.stringify({ reflection }),
     })
@@ -179,7 +200,7 @@ export const api = {
   
   // Auth - Request magic link
   async requestMagicLink(email: string): Promise<{ message: string }> {
-    return fetchJSON(`${API_BASE}/auth/magic-link`, {
+    return fetchJSON(`${getAPI()}/auth/magic-link`, {
       method: 'POST',
       body: JSON.stringify({ email }),
     })
@@ -188,7 +209,7 @@ export const api = {
   // Auth - Get current user
   async getCurrentUser(): Promise<User | null> {
     try {
-      return await fetchJSON<User>(`${API_BASE}/auth/me`)
+      return await fetchJSON<User>(`${getAPI()}/auth/me`)
     } catch {
       return null
     }
@@ -196,7 +217,7 @@ export const api = {
   
   // Auth - Set username
   async setUsername(username: string): Promise<User> {
-    return fetchJSON<User>(`${API_BASE}/auth/username`, {
+    return fetchJSON<User>(`${getAPI()}/auth/username`, {
       method: 'POST',
       body: JSON.stringify({ username }),
     })
@@ -204,14 +225,14 @@ export const api = {
   
   // Auth - Logout
   async logout(): Promise<void> {
-    await fetchJSON(`${API_BASE}/auth/logout`, {
+    await fetchJSON(`${getAPI()}/auth/logout`, {
       method: 'POST',
     })
   },
   
   // Auth - Link game to user
   async linkGameToUser(gameToken: string): Promise<void> {
-    await fetchJSON(`${API_BASE}/auth/link-game/${gameToken}`, {
+    await fetchJSON(`${getAPI()}/auth/link-game/${gameToken}`, {
       method: 'POST',
     })
   },

@@ -7,7 +7,7 @@ const PROD_API = 'https://hindsight-production-38c1.up.railway.app/api'
 const DEV_API = 'http://localhost:8000/api'
 
 // Get API URL - checks window.location at runtime
-function getApiUrl(): string {
+export function getApiUrl(): string {
   // Server-side rendering - use production URL
   if (typeof window === 'undefined') {
     return PROD_API

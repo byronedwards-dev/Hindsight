@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { getApiUrl } from '@/lib/api'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 function VerifyContent() {
@@ -28,7 +29,7 @@ function VerifyContent() {
         
         // Verify the magic link - this will redirect from the server
         // but we need to handle the case where we're on the frontend
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+        const API_BASE = getApiUrl()
         const url = new URL(`${API_BASE}/auth/verify`)
         url.searchParams.set('token', token)
         if (pendingGameToken) {

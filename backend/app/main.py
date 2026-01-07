@@ -19,9 +19,14 @@ allowed_origins = [
     "http://127.0.0.1:3000",
 ]
 
-# Add production frontend URL if configured
+# Add production frontend URLs if configured
+if settings.frontend_url and settings.frontend_url not in allowed_origins:
+    allowed_origins.append(settings.frontend_url)
 if settings.app_base_url and settings.app_base_url not in allowed_origins:
     allowed_origins.append(settings.app_base_url)
+
+# Log allowed origins for debugging
+print(f"CORS allowed origins: {allowed_origins}")
 
 app.add_middleware(
     CORSMiddleware,

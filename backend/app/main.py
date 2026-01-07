@@ -1,6 +1,7 @@
 """Hindsight Economics - FastAPI Application."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api import api_router
 from app.config import get_settings
@@ -11,6 +12,8 @@ app = FastAPI(
     title="Hindsight Economics",
     description="A forecasting prediction game that tests users' economic intuition",
     version="1.0.0",
+    # Disable automatic redirect from /path to /path/ to prevent HTTP redirect issues
+    redirect_slashes=False,
 )
 
 # CORS middleware for frontend

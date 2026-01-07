@@ -126,7 +126,7 @@ def request_magic_link(
     if settings.resend_api_key:
         try:
             resend.Emails.send({
-                "from": "Hindsight Economics <noreply@diftar.co>",
+                "from": "Hindsight Economics <noreply@notifications.diftar.co>",
                 "to": [email],
                 "subject": "Your login link for Hindsight Economics",
                 "html": f"""

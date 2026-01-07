@@ -2,7 +2,24 @@
  * API client for Hindsight Economics backend
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+// Get API base URL, ensuring HTTPS in production
+function getApiBase(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL
+  
+  // Default for local development
+  if (!envUrl) {
+    return 'http://localhost:8000/api'
+  }
+  
+  // Ensure HTTPS for non-localhost URLs
+  if (!envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    return envUrl.replace('http://', 'https://')
+  }
+  
+  return envUrl
+}
+
+const API_BASE = getApiBase()
 
 // Types
 export interface ScenarioBase {

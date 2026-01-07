@@ -253,9 +253,44 @@ export default function RevealPage() {
               </div>
             </div>
 
-            {/* Comparison */}
+            {/* Optimal Allocation (Hindsight) */}
             <div className="pt-4 border-t border-terminal-border">
-              <h4 className="text-sm text-terminal-text mb-2">Comparison</h4>
+              <h4 className="text-sm text-terminal-text mb-2">Optimal Allocation (Hindsight)</h4>
+              <div className="space-y-1 text-sm font-mono mb-3">
+                {reveal.optimal_allocation && (
+                  <>
+                    {reveal.optimal_allocation.stocks > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gold">100% Stocks</span>
+                        <span className="text-gain">{(reveal.asset_returns.stocks * 100).toFixed(1)}%</span>
+                      </div>
+                    )}
+                    {reveal.optimal_allocation.bonds > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gold">100% Bonds</span>
+                        <span className="text-gain">{(reveal.asset_returns.bonds * 100).toFixed(1)}%</span>
+                      </div>
+                    )}
+                    {reveal.optimal_allocation.gold > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gold">100% Gold</span>
+                        <span className="text-gain">{(reveal.asset_returns.gold * 100).toFixed(1)}%</span>
+                      </div>
+                    )}
+                    {reveal.optimal_allocation.cash > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gold">100% Cash</span>
+                        <span className="text-gain">{(reveal.asset_returns.cash * 100).toFixed(1)}%</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Comparison vs Optimal */}
+            <div className="pt-4 border-t border-terminal-border">
+              <h4 className="text-sm text-terminal-text mb-2">Your Performance vs Optimal</h4>
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-white">Your Return</span>
@@ -264,9 +299,9 @@ export default function RevealPage() {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white">Benchmark (60/40)</span>
-                  <span className={`font-mono ${reveal.benchmark_return >= 0 ? 'text-gain' : 'text-loss'}`}>
-                    {(reveal.benchmark_return * 100).toFixed(1)}%
+                  <span className="text-white">Optimal Return</span>
+                  <span className={`font-mono ${reveal.optimal_return >= 0 ? 'text-gain' : 'text-loss'}`}>
+                    {(reveal.optimal_return * 100).toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -274,8 +309,8 @@ export default function RevealPage() {
                   <span className="font-mono text-white">{reveal.portfolio_sharpe.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white">Benchmark Sharpe</span>
-                  <span className="font-mono text-white">{reveal.benchmark_sharpe.toFixed(2)}</span>
+                  <span className="text-white">Optimal Sharpe</span>
+                  <span className="font-mono text-white">{reveal.optimal_sharpe.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -286,8 +321,8 @@ export default function RevealPage() {
             }`}>
               <span className={`font-semibold ${beatBenchmark ? 'text-gain' : 'text-loss'}`}>
                 {beatBenchmark 
-                  ? `🎉 You beat the benchmark by ${(reveal.excess_return * 100).toFixed(1)}%!`
-                  : `You underperformed by ${(Math.abs(reveal.excess_return) * 100).toFixed(1)}%`
+                  ? `🎉 You matched the optimal allocation!`
+                  : `You left ${(Math.abs(reveal.excess_return) * 100).toFixed(1)}% on the table vs optimal`
                 }
               </span>
             </div>

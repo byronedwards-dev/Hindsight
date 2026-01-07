@@ -126,7 +126,7 @@ def request_magic_link(
     if settings.resend_api_key:
         try:
             resend.Emails.send({
-                "from": "Hindsight Economics <onboarding@resend.dev>",
+                "from": "Hindsight Economics <noreply@diftar.co>",
                 "to": [email],
                 "subject": "Your login link for Hindsight Economics",
                 "html": f"""
@@ -150,10 +150,16 @@ def request_magic_link(
                 """
             })
         except Exception as e:
-            print(f"Failed to send magic link email: {e}")
-            # In development, we'll continue anyway
+            # Log the magic link so you can still use it (helpful for testing with Resend free tier)
+            print(f"[EMAIL FAILED] Magic link for {email}: {magic_link_url}")
+            print(f"[EMAIL ERROR] {e}")
+            # NOTE: On Resend's free tier, you can only send to the email you registered with.
+            # To send to other emails: 1) Verify your own domain in Resend, or 2) Add emails to Resend Audience
             if settings.environment == "production":
-                raise HTTPException(status_code=500, detail="Failed to send email")
+                raise HTTPException(
+                    status_code=500, 
+                    detail="Failed to send email. If using Resend free tier, you may need to verify a custom domain."
+                )
     else:
         # In development without Resend, log the link
         print(f"[DEV] Magic link for {email}: {magic_link_url}")

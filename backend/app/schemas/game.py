@@ -102,11 +102,16 @@ class GameRevealOut(BaseModel):
     portfolio_return: float
     portfolio_sharpe: float
     
-    # Benchmark comparison
-    benchmark_return: float
-    benchmark_sharpe: float
-    excess_return: float
-    excess_sharpe: float
+    # Optimal allocation (hindsight comparison)
+    optimal_allocation: AllocationInput  # 100% in best performing asset
+    optimal_return: float
+    optimal_sharpe: float
+    
+    # Comparison to optimal (replacing 60/40 benchmark)
+    benchmark_return: float  # Now this is optimal return
+    benchmark_sharpe: float  # Now this is optimal sharpe
+    excess_return: float  # Your return vs optimal
+    excess_sharpe: float  # Your sharpe vs optimal
     
     # User's rationale
     rationale: Optional[str] = None

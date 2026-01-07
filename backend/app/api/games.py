@@ -339,20 +339,22 @@ def reveal_game(session_token: str, db: Session = Depends(get_db)):
         allocation, monthly_returns, risk_free_return
     )
     
-    benchmark_metrics = ScoringService.calculate_benchmark_metrics(
+    # Calculate optimal allocation (hindsight-based comparison)
+    optimal_metrics = ScoringService.calculate_optimal_metrics(
         returns, monthly_returns, risk_free_return
     )
     
-    excess_return = portfolio_return - benchmark_metrics['return']
-    excess_sharpe = portfolio_sharpe - benchmark_metrics['sharpe']
+    # Compare to optimal allocation (not 60/40)
+    excess_return = portfolio_return - optimal_metrics['return']
+    excess_sharpe = portfolio_sharpe - optimal_metrics['sharpe']
     
     # Update game session with scores if not already done
     if game.completed_at is None:
         game.brier_score = brier_score
         game.portfolio_return = portfolio_return
         game.portfolio_sharpe = portfolio_sharpe
-        game.vs_benchmark_return = excess_return
-        game.vs_benchmark_sharpe = excess_sharpe
+        game.vs_benchmark_return = excess_return  # Now vs optimal allocation
+        game.vs_benchmark_sharpe = excess_sharpe  # Now vs optimal allocation
         game.completed_at = datetime.utcnow()
         db.commit()
     
@@ -401,8 +403,11 @@ def reveal_game(session_token: str, db: Session = Depends(get_db)):
         asset_returns=returns,
         portfolio_return=portfolio_return,
         portfolio_sharpe=portfolio_sharpe,
-        benchmark_return=benchmark_metrics['return'],
-        benchmark_sharpe=benchmark_metrics['sharpe'],
+        optimal_allocation=AllocationInput(**optimal_metrics['allocation']),
+        optimal_return=optimal_metrics['return'],
+        optimal_sharpe=optimal_metrics['sharpe'],
+        benchmark_return=optimal_metrics['return'],  # Now comparing to optimal
+        benchmark_sharpe=optimal_metrics['sharpe'],
         excess_return=excess_return,
         excess_sharpe=excess_sharpe,
         rationale=game.rationale,

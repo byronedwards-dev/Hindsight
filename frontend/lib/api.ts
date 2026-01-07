@@ -103,6 +103,9 @@ export interface GameReveal {
   asset_returns: Record<string, number>
   portfolio_return: number
   portfolio_sharpe: number
+  optimal_allocation: Allocation
+  optimal_return: number
+  optimal_sharpe: number
   benchmark_return: number
   benchmark_sharpe: number
   excess_return: number
@@ -166,8 +169,7 @@ export const api = {
   
   // Create a new game session with predictions
   async createGame(input: GameCreateInput): Promise<GameSession> {
-    // Use trailing slash to prevent FastAPI redirect (which can cause HTTP downgrade)
-    return fetchJSON<GameSession>(`${getAPI()}/games/`, {
+    return fetchJSON<GameSession>(`${getAPI()}/games`, {
       method: 'POST',
       body: JSON.stringify(input),
     })

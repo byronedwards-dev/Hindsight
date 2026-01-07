@@ -179,5 +179,59 @@ class ScoringService:
             return "Poor calibration (near random)"
         else:
             return "Worse than random guessing"
+    
+    @staticmethod
+    def calculate_optimal_allocation(returns: Dict[str, float]) -> Dict[str, int]:
+        """
+        Calculate the optimal allocation based on actual returns.
+        With hindsight, the optimal allocation is 100% in the best-performing asset.
+        
+        Args:
+            returns: Dict with keys 'stocks', 'bonds', 'cash', 'gold' (real returns as decimals)
+        
+        Returns:
+            Dict with optimal allocation (100% in best asset, 0% elsewhere)
+        """
+        # Find the best performing asset
+        best_asset = max(returns, key=returns.get)
+        
+        return {
+            'stocks': 100 if best_asset == 'stocks' else 0,
+            'bonds': 100 if best_asset == 'bonds' else 0,
+            'cash': 100 if best_asset == 'cash' else 0,
+            'gold': 100 if best_asset == 'gold' else 0,
+        }
+    
+    @staticmethod
+    def calculate_optimal_metrics(
+        returns: Dict[str, float],
+        monthly_returns: Dict[str, List[float]],
+        risk_free_return: float
+    ) -> Dict[str, float]:
+        """
+        Calculate metrics for the optimal allocation.
+        
+        Args:
+            returns: Annual returns per asset
+            monthly_returns: Monthly returns per asset
+            risk_free_return: Annualized risk-free return
+        
+        Returns:
+            Dict with 'return', 'sharpe', and 'allocation' for optimal portfolio
+        """
+        optimal_allocation = ScoringService.calculate_optimal_allocation(returns)
+        
+        optimal_return = ScoringService.calculate_portfolio_return(
+            optimal_allocation, returns
+        )
+        optimal_sharpe = ScoringService.calculate_portfolio_sharpe(
+            optimal_allocation, monthly_returns, risk_free_return
+        )
+        
+        return {
+            'return': optimal_return,
+            'sharpe': optimal_sharpe,
+            'allocation': optimal_allocation,
+        }
 
 

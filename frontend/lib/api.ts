@@ -2,28 +2,10 @@
  * API client for Hindsight Economics backend
  */
 
-// Hardcoded production URL to avoid any env var issues
-const PRODUCTION_API_URL = 'https://hindsight-production-38c1.up.railway.app/api'
-
-// Get API base URL
-function getApiBase(): string {
-  // Check if we're in browser and on production domain
-  if (typeof window !== 'undefined' && window.location.hostname === 'hindsight-ten.vercel.app') {
-    return PRODUCTION_API_URL
-  }
-  
-  // Use env var or default to localhost for dev
-  const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
-  
-  // Ensure HTTPS for non-localhost URLs
-  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
-    return envUrl.replace(/^http:/, 'https:')
-  }
-  
-  return envUrl
-}
-
-const API_BASE = getApiBase()
+// Determine API base at runtime
+const API_BASE = process.env.NODE_ENV === 'production'
+  ? 'https://hindsight-production-38c1.up.railway.app/api'
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api')
 
 // Types
 export interface ScenarioBase {

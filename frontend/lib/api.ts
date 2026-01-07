@@ -166,7 +166,8 @@ export const api = {
   
   // Create a new game session with predictions
   async createGame(input: GameCreateInput): Promise<GameSession> {
-    return fetchJSON<GameSession>(`${getAPI()}/games`, {
+    // Use trailing slash to prevent FastAPI redirect (which can cause HTTP downgrade)
+    return fetchJSON<GameSession>(`${getAPI()}/games/`, {
       method: 'POST',
       body: JSON.stringify(input),
     })

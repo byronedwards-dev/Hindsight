@@ -340,7 +340,7 @@ export default function RevealPage() {
 
           {/* Leaderboard CTA */}
           <div className="bg-terminal-card border-2 border-stocks/30 rounded-xl p-6 animate-slide-up animate-delay-500">
-            <h3 className="text-lg font-medium mb-4 text-white">Join the Leaderboard</h3>
+            <h3 className="text-lg font-medium mb-4 text-white">Leaderboard</h3>
             
             {!authLoading && !user ? (
               // Not logged in - prompt to login
@@ -355,12 +355,24 @@ export default function RevealPage() {
                   }}
                   className="px-6 py-3 bg-stocks text-white rounded-lg hover:bg-stocks/80 transition-colors"
                 >
-                  Log In to Join Leaderboard
+                  Log In to Track Your Stats
                 </button>
+              </div>
+            ) : user?.username ? (
+              // Logged in with username - game auto-recorded
+              <div className="text-center py-2">
+                <p className="text-gain mb-3">✓ Game recorded for {user.username}</p>
+                <p className="text-terminal-muted text-sm mb-4">Your stats are automatically tracked on the leaderboard</p>
+                <a 
+                  href="/leaderboard"
+                  className="inline-block px-4 py-2 bg-stocks text-white rounded-lg hover:bg-stocks/80 transition-colors"
+                >
+                  View Leaderboard
+                </a>
               </div>
             ) : joinedLeaderboard ? (
               <div className="text-center py-2">
-                <p className="text-gain mb-3">✓ You've joined as {username || user?.username || user?.email.split('@')[0]}</p>
+                <p className="text-gain mb-3">✓ You've joined as {username}</p>
                 <a 
                   href="/leaderboard"
                   className="inline-block px-4 py-2 bg-stocks text-white rounded-lg hover:bg-stocks/80 transition-colors"
@@ -369,26 +381,26 @@ export default function RevealPage() {
                 </a>
               </div>
             ) : (
+              // Logged in but no username - prompt to set one
               <div className="space-y-4">
-                {!user?.username && (
-                  <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Choose a username"
-                      className="flex-1 px-4 py-2 bg-terminal-bg border border-terminal-border rounded-lg
-                               text-white placeholder-terminal-muted/50
-                               focus:outline-none focus:border-stocks transition-colors"
-                      maxLength={50}
-                    />
-                  </div>
-                )}
+                <p className="text-terminal-muted text-sm">Choose a username to appear on the leaderboard</p>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Choose a username"
+                    className="flex-1 px-4 py-2 bg-terminal-bg border border-terminal-border rounded-lg
+                             text-white placeholder-terminal-muted/50
+                             focus:outline-none focus:border-stocks transition-colors"
+                    maxLength={50}
+                  />
+                </div>
                 <button
                   onClick={handleJoinLeaderboard}
                   className="w-full px-6 py-2 bg-stocks text-white rounded-lg hover:bg-stocks/80 transition-colors"
                 >
-                  {user?.username ? 'Join as ' + user.username : 'Join Leaderboard'}
+                  Set Username & Join
                 </button>
               </div>
             )}

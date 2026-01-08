@@ -248,10 +248,16 @@ def create_game(
     session_token = str(uuid.uuid4())
     
     # Create game session
+    # If user is logged in with a username, automatically add to leaderboard
+    auto_username = None
+    if current_user and current_user.username:
+        auto_username = current_user.username
+    
     game_session = GameSession(
         scenario_id=game_input.scenario_id,
         session_token=session_token,
         user_id=current_user.id if current_user else None,
+        username=auto_username,  # Auto-set for logged-in users
         pred_above_15pct=game_input.predictions.above_15pct,
         pred_above_10pct=game_input.predictions.above_10pct,
         pred_above_5pct=game_input.predictions.above_5pct,

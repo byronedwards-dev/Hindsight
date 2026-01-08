@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { getApiUrl } from '@/lib/api'
+import { getApiUrl, api } from '@/lib/api'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 function VerifyContent() {
@@ -50,18 +50,25 @@ function VerifyContent() {
           // Clear pending game link
           localStorage.removeItem('pending_game_link')
           
-          // Refresh user state
+          // Refresh user state and get updated user
           await refreshUser()
+          const updatedUser = await api.getCurrentUser()
           
           setStatus('success')
           
-          // Check for return URL
+          // Check for return URL (keep it for after username setup if needed)
           const returnTo = localStorage.getItem('auth_return_to')
-          localStorage.removeItem('auth_return_to')
           
           // Redirect after brief delay
           setTimeout(() => {
-            router.push(returnTo || '/')
+            if (updatedUser && !updatedUser.username) {
+              // New user - needs to set username first
+              // Keep returnTo in localStorage for after username setup
+              router.push('/welcome')
+            } else {
+              localStorage.removeItem('auth_return_to')
+              router.push(returnTo || '/')
+            }
           }, 1500)
         } else {
           const data = await response.json().catch(() => ({ detail: 'Verification failed' }))

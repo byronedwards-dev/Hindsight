@@ -117,9 +117,10 @@ function LoginContent() {
         </div>
         
         <p className="mt-4 text-center text-sm text-terminal-muted">
-          Don't have an account?{' '}
+          New here? Enter your email to create an account.
+          <br />
           <span className="text-terminal-text">
-            Enter your email above to create one automatically.
+            You'll choose a public username for the leaderboard.
           </span>
         </p>
       </div>

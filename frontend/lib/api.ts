@@ -190,7 +190,7 @@ export const api = {
   
   // Get leaderboard
   async getLeaderboard(limit: number = 50): Promise<Leaderboard> {
-    return fetchJSON<Leaderboard>(`${getAPI()}/leaderboard?limit=${limit}`)
+    return fetchJSON<Leaderboard>(`${getAPI()}/leaderboard/?limit=${limit}`)
   },
   
   // Add reflection after reveal

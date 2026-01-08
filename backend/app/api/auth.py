@@ -208,8 +208,12 @@ def verify_magic_link(
     
     db.commit()
     
-    # Set cookie and redirect to home
-    response = RedirectResponse(url=settings.frontend_url, status_code=302)
+    # Return JSON response with cookie set
+    # (Frontend handles redirect - can't set cookies via redirect with redirect: 'manual')
+    response = Response(
+        content='{"success": true, "has_username": ' + ('true' if user.username else 'false') + '}',
+        media_type="application/json"
+    )
     response.set_cookie(
         key="session_token",
         value=session_token,

@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { getApiUrl, api } from '@/lib/api'
+import { getApiUrl } from '@/lib/api'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 function VerifyContent() {
@@ -43,16 +43,16 @@ function VerifyContent() {
         
         const response = await fetch(url.toString(), {
           credentials: 'include',
-          redirect: 'manual'
         })
         
-        if (response.type === 'opaqueredirect' || response.ok || response.status === 302) {
+        if (response.ok) {
+          const data = await response.json()
+          
           // Clear pending game link
           localStorage.removeItem('pending_game_link')
           
-          // Refresh user state and get updated user
+          // Refresh user state
           await refreshUser()
-          const updatedUser = await api.getCurrentUser()
           
           setStatus('success')
           
@@ -61,7 +61,7 @@ function VerifyContent() {
           
           // Redirect after brief delay
           setTimeout(() => {
-            if (updatedUser && !updatedUser.username) {
+            if (!data.has_username) {
               // New user - needs to set username first
               // Keep returnTo in localStorage for after username setup
               router.push('/welcome')

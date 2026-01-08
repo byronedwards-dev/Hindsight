@@ -120,6 +120,11 @@ export interface LeaderboardEntry {
   avg_brier_score: number
   avg_sharpe: number
   avg_excess_return: number
+  // Recent (last 5 games) stats
+  recent_brier: number | null
+  recent_sharpe: number | null
+  recent_excess: number | null
+  trend: 'improving' | 'declining' | 'stable' | null
 }
 
 export interface Leaderboard {

@@ -60,12 +60,13 @@ export default function LeaderboardPage() {
       {leaderboard && leaderboard.entries.length > 0 ? (
         <div className="bg-terminal-card border border-terminal-border rounded-xl overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-6 gap-4 px-6 py-3 bg-terminal-bg border-b border-terminal-border text-sm text-terminal-muted font-medium">
+          <div className="grid grid-cols-7 gap-3 px-6 py-3 bg-terminal-bg border-b border-terminal-border text-sm text-terminal-muted font-medium">
             <div>Rank</div>
             <div>Player</div>
             <div className="text-right">Games</div>
-            <div className="text-right">Avg Brier</div>
-            <div className="text-right">Avg Sharpe</div>
+            <div className="text-right">All-Time Brier</div>
+            <div className="text-right">Last 5 Brier</div>
+            <div className="text-right">Trend</div>
             <div className="text-right">Excess Return</div>
           </div>
 
@@ -74,7 +75,7 @@ export default function LeaderboardPage() {
             {leaderboard.entries.map((entry, i) => (
               <div 
                 key={entry.username}
-                className={`grid grid-cols-6 gap-4 px-6 py-4 ${
+                className={`grid grid-cols-7 gap-3 px-6 py-4 ${
                   i < 3 ? 'bg-stocks/5' : ''
                 }`}
               >
@@ -92,7 +93,13 @@ export default function LeaderboardPage() {
                   {entry.avg_brier_score.toFixed(4)}
                 </div>
                 <div className="text-right font-mono">
-                  {entry.avg_sharpe.toFixed(2)}
+                  {entry.recent_brier !== null ? entry.recent_brier.toFixed(4) : '—'}
+                </div>
+                <div className="text-right">
+                  {entry.trend === 'improving' && <span className="text-gain">📈 Better</span>}
+                  {entry.trend === 'declining' && <span className="text-loss">📉 Worse</span>}
+                  {entry.trend === 'stable' && <span className="text-terminal-muted">➡️ Stable</span>}
+                  {entry.trend === null && <span className="text-terminal-muted">—</span>}
                 </div>
                 <div className={`text-right font-mono ${
                   entry.avg_excess_return >= 0 ? 'text-gain' : 'text-loss'

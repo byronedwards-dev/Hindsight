@@ -122,9 +122,16 @@ class LeaderboardEntry(BaseModel):
     rank: int
     username: str
     games_played: int
+    # All-time stats
     avg_brier_score: float
     avg_sharpe: float
     avg_excess_return: float
+    # Last 5 games stats (None if less than 5 games)
+    recent_brier: Optional[float] = None
+    recent_sharpe: Optional[float] = None
+    recent_excess: Optional[float] = None
+    # Trend: "improving", "declining", or "stable" (based on recent vs all-time Brier)
+    trend: Optional[str] = None
 
 
 class LeaderboardOut(BaseModel):
